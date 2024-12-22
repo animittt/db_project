@@ -6,6 +6,7 @@ import models, crud, schemas
 from database import SessionLocal, engine, Base
 import schemas
 from typing import Optional
+from sqlalchemy import func
 
 Base.metadata.create_all(bind=engine)
 
@@ -59,8 +60,6 @@ def update_student_city(enrollment_year: int, spec_name: str, new_city: str, db:
     ).update({models.Student.city: new_city})
     db.commit()
     return {"updated_rows": updated_rows}
-
-from sqlalchemy import func
 
 @app.get("/students/count-by-city/")
 def count_students_by_city(db: Session = Depends(get_db)):
