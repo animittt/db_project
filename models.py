@@ -9,7 +9,6 @@ class Faculty(Base):
     number_of_places = Column(Integer, nullable=True)
     spec_name = Column(String(100), nullable=True)
 
-
 class Learning(Base):
     __tablename__ = "learning"
     spec_name = Column(String(100), primary_key=True)

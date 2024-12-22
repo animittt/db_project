@@ -9,9 +9,7 @@ from typing import Optional
 from sqlalchemy import func
 
 Base.metadata.create_all(bind=engine)
-
 app = FastAPI()
-
 def get_db():
     db = SessionLocal()
     try:

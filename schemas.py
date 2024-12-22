@@ -1,5 +1,6 @@
 from pydantic import BaseModel
 from typing import Optional
+from datetime import date
 
 class FacultyBase(BaseModel):
     name: str
@@ -35,9 +36,6 @@ class LearningUpdate(BaseModel):
     scholarship_amount: Optional[float] = None
     group: Optional[int] = None
 
-from datetime import date
-
-# Student schema for reading
 class StudentRead(BaseModel):
     name_surname: str
     date_of_birth: date
@@ -48,7 +46,6 @@ class StudentRead(BaseModel):
     class Config:
         from_attributes = True
 
-# Student schema for creating
 class StudentCreate(BaseModel):
     name_surname: str
     date_of_birth: date
