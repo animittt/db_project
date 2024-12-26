@@ -37,7 +37,6 @@ def delete_faculty(db: Session, name: str):
         db.commit()
     return db_faculty
 
-
 def create_learning(db: Session, learning: schemas.LearningCreate):
     db_learning = models.Learning(
         spec_name=learning.spec_name,
