@@ -1,5 +1,6 @@
 from sqlalchemy.orm import Session
 import models, schemas
+from typing import List, Optional
 
 def create_faculty(db: Session, faculty: schemas.FacultyCreate):
     db_faculty = models.Faculty(
@@ -72,20 +73,12 @@ def delete_learning(db: Session, spec_name: str):
         db.commit()
     return db_learning
 
-from typing import List, Optional
-
-
-# Get all students with pagination
 def get_students(db: Session, skip: int = 0, limit: int = 10) -> List[models.Student]:
     return db.query(models.Student).offset(skip).limit(limit).all()
 
-
-# Get a student by ID
 def get_student_by_id(db: Session, student_id: int) -> Optional[models.Student]:
     return db.query(models.Student).filter(models.Student.id == student_id).first()
 
-
-# Create a new student
 def create_student(db: Session, student_data: schemas.StudentCreate) -> models.Student:
     db_student = models.Student(**student_data.dict())
     db.add(db_student)
@@ -93,17 +86,12 @@ def create_student(db: Session, student_data: schemas.StudentCreate) -> models.S
     db.refresh(db_student)
     return db_student
 
-
-# Update a student's information
 def update_student(db: Session, student_id: int, updated_data: dict) -> int:
     result = db.query(models.Student).filter(models.Student.id == student_id).update(updated_data)
     db.commit()
     return result
 
-
-# Delete a student
 def delete_student(db: Session, student_id: int) -> int:
     result = db.query(models.Student).filter(models.Student.id == student_id).delete()
     db.commit()
     return result
-
