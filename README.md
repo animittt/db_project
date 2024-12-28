@@ -4,7 +4,7 @@
 To install `dbProject`, follow these steps:
 1. Clone the repository:
     ```sh
-    git clone https://github.com/yourusername/dbProject.git
+    git clone https://github.com/animittt/db_project
     ```
 2. Navigate to the project directory:
     ```sh
