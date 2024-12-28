@@ -12,12 +12,12 @@ To install `dbProject`, follow these steps:
     ```
 3. Install dependencies:
     ```sh
-    npm install
+    pip install -r requirements.txt
     ```
 
 ## Usage
 To start using `dbProject`, run the following command:
 ```sh
-npm start
+uvicorn main:app --reload
 ```
 Open your browser and navigate to `http://localhost:5455` to access the application.      
