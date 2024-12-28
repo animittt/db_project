@@ -5,7 +5,6 @@ from typing import List
 import models, crud, schemas
 from database import SessionLocal, engine, Base
 import schemas
-from typing import Optional
 from sqlalchemy import func
 
 Base.metadata.create_all(bind=engine)

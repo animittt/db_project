@@ -3,7 +3,6 @@ from sqlalchemy.orm import Session
 from database import SessionLocal
 import models
 
-
 faker = Faker()
 NUM_FACULTIES = 5
 NUM_LEARNINGS = 10
