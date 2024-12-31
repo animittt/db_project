@@ -18,7 +18,7 @@ def get_db():
 
 @app.get("/")
 def read_root():
-    return {"message": "Welcome to the API! Use the available endpoints like /faculties/, /students/, etc."}
+    return {"message": "Welcome to the dekanat API! Use the available endpoints like /faculties/, /students/, etc."}
 
 @app.get("/faculties/", response_model=List[schemas.FacultyRead])
 def get_faculties(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
@@ -31,6 +31,17 @@ def get_students(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
 @app.post("/students/", response_model=schemas.StudentRead)
 def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     return crud.create_student(db, student)
+
+@app.post("/faculties/", response_model=schemas.FacultyRead) 
+def create_faculty(faculty: schemas.FacultyCreate, db: Session = Depends(get_db)):
+    return crud.create_faculty(db, faculty)
+
+@app.get("/faculties/{name}/", response_model=schemas.FacultyRead)
+def get_faculty(name: str, db: Session = Depends(get_db)):
+    faculty = crud.get_faculty(db, name)
+    if faculty is None:
+        raise HTTPException(status_code=404, detail="Faculty not found")
+    return faculty
 
 @app.get("/students/filter-by-city/", response_model=List[schemas.StudentRead])
 def filter_students(city: str, db: Session = Depends(get_db)):
