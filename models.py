@@ -1,7 +1,7 @@
 
-from sqlalchemy import Column, Integer, String, Numeric, Date
+from sqlalchemy import JSON, Column, Integer, String, Numeric, Date
 from database import Base
-
+from sqlalchemy.dialects.postgresql import JSONB
 class Faculty(Base):
     __tablename__ = "faculty"
     name = Column(String(100), primary_key=True)
@@ -24,5 +24,6 @@ class Student(Base):
     city = Column(String(40), nullable=False)
     enrollment_year = Column(Integer, nullable=True)
     spec_name = Column(String(100), nullable=True)
+    hobbies = Column(JSONB, nullable=True)
 
 

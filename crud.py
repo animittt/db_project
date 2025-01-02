@@ -1,6 +1,9 @@
 from sqlalchemy.orm import Session
 import models, schemas
 from typing import List, Optional
+from sqlalchemy import Text
+from sqlalchemy.orm import Session
+from sqlalchemy.sql.expression import func
 
 def create_faculty(db: Session, faculty: schemas.FacultyCreate):
     db_faculty = models.Faculty(
@@ -79,7 +82,14 @@ def get_student_by_id(db: Session, student_id: int) -> Optional[models.Student]:
     return db.query(models.Student).filter(models.Student.id == student_id).first()
 
 def create_student(db: Session, student_data: schemas.StudentCreate) -> models.Student:
-    db_student = models.Student(**student_data.dict())
+    db_student = models.Student(
+        name_surname=student_data.name_surname,
+        date_of_birth=student_data.date_of_birth,
+        city=student_data.city,
+        enrollment_year=student_data.enrollment_year,
+        spec_name=student_data.spec_name,
+        metadata=student_data.metadata
+    )
     db.add(db_student)
     db.commit()
     db.refresh(db_student)
@@ -94,3 +104,8 @@ def delete_student(db: Session, student_id: int) -> int:
     result = db.query(models.Student).filter(models.Student.id == student_id).delete()
     db.commit()
     return result
+
+def search_students_by_metadata(db: Session, regex: str):
+    return db.query(models.Student).filter(
+        func.cast(models.Student.hobbies, Text).op("~")(regex)
+    ).all()

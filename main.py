@@ -78,6 +78,11 @@ def count_students_by_city(db: Session = Depends(get_db)):
 
     return [{"city": row[0], "student_count": row[1]} for row in results]
 
+@app.get("/students/search", response_model=List[schemas.StudentRead])
+def search_students(regex: str, db: Session = Depends(get_db)):
+    students = crud.search_students_by_metadata(db, regex)
+    return students
+
 @app.delete("/students/{student_id}/")
 def delete_student(student_id: int, db: Session = Depends(get_db)):
     deleted_rows = crud.delete_student(db, student_id)

@@ -42,7 +42,7 @@ class StudentRead(BaseModel):
     city: str
     enrollment_year: Optional[int]
     spec_name: Optional[str]
-
+    hobbies: Optional[dict]
     class Config:
         from_attributes = True
 
@@ -52,3 +52,4 @@ class StudentCreate(BaseModel):
     city: str
     enrollment_year: Optional[int]
     spec_name: Optional[str]
+    hobbies: Optional[dict]
