@@ -21,14 +21,6 @@ def get_db():
 def read_root():
     return {"message": "Welcome to the dekanat API! Use the available endpoints like /faculties/, /students/, etc."}
 
-@app.get("/faculties/", response_model=List[schemas.FacultyRead])
-def get_faculties(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    return crud.get_faculties(db, skip=skip, limit=limit)
-
-@app.get("/students/", response_model=List[schemas.StudentRead])
-def get_students(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    return crud.get_students(db, skip=skip, limit=limit)
-
 @app.post("/students/", response_model=schemas.StudentRead)
 def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)):
     return crud.create_student(db, student)
@@ -36,6 +28,14 @@ def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)
 @app.post("/faculties/", response_model=schemas.FacultyRead) 
 def create_faculty(faculty: schemas.FacultyCreate, db: Session = Depends(get_db)):
     return crud.create_faculty(db, faculty)
+
+@app.get("/students/", response_model=List[schemas.StudentRead])
+def get_students(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    return crud.get_students(db, skip=skip, limit=limit)
+
+@app.get("/faculties/", response_model=List[schemas.FacultyRead])
+def get_faculties(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
+    return crud.get_faculties(db, skip=skip, limit=limit)
 
 @app.get("/faculties/{name}/", response_model=schemas.FacultyRead)
 def get_faculty(name: str, db: Session = Depends(get_db)):
@@ -46,9 +46,11 @@ def get_faculty(name: str, db: Session = Depends(get_db)):
 
 @app.get("/students/filter-by-city/", response_model=List[schemas.StudentRead])
 def filter_students(city: str, db: Session = Depends(get_db)):
-    students = db.query(models.Student).filter(
-        models.Student.city == city
-    ).all()
+    if not city:
+        raise HTTPException(status_code=400, detail="City cannot be empty")
+    students = db.query(models.Student).filter(models.Student.city.ilike(city)).all()
+    if students is None:
+        raise HTTPException(status_code=404, detail="No students found in this city")
     students = sorted(students, key=lambda x: x.name_surname)
     return students
 
@@ -59,6 +61,8 @@ def students_with_faculty(db: Session = Depends(get_db)):
         models.Student.city,
         models.Faculty.head_of_dp
     ).join(models.Faculty, models.Student.spec_name == models.Faculty.spec_name).all()
+    if not results:
+        raise HTTPException(status_code=404, detail="No students found")
     results = sorted(results, key=lambda x: x[0])
     return [{"name_surname": row[0], "city": row[1], "head_of_dp": row[2]} for row in results]
 
@@ -77,6 +81,7 @@ def count_students_by_city(db: Session = Depends(get_db)):
         models.Student.city,
         func.count(models.Student.id).label("student_count")
     ).group_by(models.Student.city).all()
+    results = sorted(results, key=lambda x: x[1], reverse=True)
     return [{"city": row[0], "student_count": row[1]} for row in results]
 
 @app.get("/students/search-by-name/")
