@@ -81,19 +81,19 @@ def get_students(db: Session, skip: int = 0, limit: int = 10) -> List[models.Stu
 def get_student_by_id(db: Session, student_id: int) -> Optional[models.Student]:
     return db.query(models.Student).filter(models.Student.id == student_id).first()
 
-def create_student(db: Session, student_data: schemas.StudentCreate) -> models.Student:
-    db_student = models.Student(
+def create_student(db: Session, student_data: schemas.StudentCreate):
+    new_student = models.Student(
         name_surname=student_data.name_surname,
         date_of_birth=student_data.date_of_birth,
         city=student_data.city,
         enrollment_year=student_data.enrollment_year,
         spec_name=student_data.spec_name,
-        metadata=student_data.metadata
+        meta_info=student_data.meta_info  # Use `meta_info` here
     )
-    db.add(db_student)
+    db.add(new_student)
     db.commit()
-    db.refresh(db_student)
-    return db_student
+    db.refresh(new_student)
+    return new_student
 
 def update_student(db: Session, student_id: int, updated_data: dict) -> int:
     result = db.query(models.Student).filter(models.Student.id == student_id).update(updated_data)
@@ -105,7 +105,5 @@ def delete_student(db: Session, student_id: int) -> int:
     db.commit()
     return result
 
-def search_students_by_metadata(db: Session, regex: str):
-    return db.query(models.Student).filter(
-        func.cast(models.Student.hobbies, Text).op("~")(regex)
-    ).all()
+def search_students_by_name(db: Session, name: str) -> List[models.Student]:
+    return db.query(models.Student).filter(models.Student.name_surname.ilike(f"%{name}%")).all()

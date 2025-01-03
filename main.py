@@ -6,6 +6,8 @@ import models, crud, schemas
 from database import SessionLocal, engine, Base
 import schemas
 from sqlalchemy import func
+from sqlalchemy.sql import cast
+from sqlalchemy.types import String
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -48,6 +50,7 @@ def filter_students(city: str, db: Session = Depends(get_db)):
     students = db.query(models.Student).filter(
         models.Student.city == city
     ).all()
+    students = sorted(students, key=lambda x: x.name_surname)
     return students
 
 @app.get("/students-with-faculty/", response_model=List[dict])
@@ -57,7 +60,7 @@ def students_with_faculty(db: Session = Depends(get_db)):
         models.Student.city,
         models.Faculty.head_of_dp
     ).join(models.Faculty, models.Student.spec_name == models.Faculty.spec_name).all()
-
+    results = sorted(results, key=lambda x: x[0])
     return [{"name_surname": row[0], "city": row[1], "head_of_dp": row[2]} for row in results]
 
 @app.put("/students/update-city/")
@@ -75,12 +78,22 @@ def count_students_by_city(db: Session = Depends(get_db)):
         models.Student.city,
         func.count(models.Student.id).label("student_count")
     ).group_by(models.Student.city).all()
-
     return [{"city": row[0], "student_count": row[1]} for row in results]
 
-@app.get("/students/search", response_model=List[schemas.StudentRead])
-def search_students(regex: str, db: Session = Depends(get_db)):
-    students = crud.search_students_by_metadata(db, regex)
+@app.get("/students/search-by-name/")
+def search_students_by_name(name: str, db: Session = Depends(get_db)):
+    students = crud.search_students_by_name(db, name)
+    if students is None:
+        raise HTTPException(status_code=404, detail="Student not found")
+    return students
+
+@app.get("/students/search-with-metadata/")
+def search_students(query: str, db: Session = Depends(get_db)):
+    students = db.query(models.Student).filter(
+        cast(models.Student.meta_info, String).ilike(f"%{query}%")
+    ).all()
+    if students is None:
+        raise HTTPException(status_code=404, detail="Student not found")
     return students
 
 @app.delete("/students/{student_id}/")
@@ -96,7 +109,6 @@ def update_student(student_id: int, updated_data: dict, db: Session = Depends(ge
     if updated_rows == 0:
         raise HTTPException(status_code=404, detail="Student not found")
     return {"updated_rows": updated_rows}
-
 
 @app.get("/students/{student_id}/", response_model=schemas.StudentRead)
 def get_student(student_id: int, db: Session = Depends(get_db)):
