@@ -4,7 +4,6 @@ from sqlalchemy.orm import Session
 from typing import List
 import models, crud, schemas
 from database import SessionLocal, engine, Base
-import schemas
 from sqlalchemy import func
 from sqlalchemy.sql import cast
 from sqlalchemy.types import String
