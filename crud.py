@@ -88,7 +88,7 @@ def create_student(db: Session, student_data: schemas.StudentCreate):
         city=student_data.city,
         enrollment_year=student_data.enrollment_year,
         spec_name=student_data.spec_name,
-        meta_info=student_data.meta_info  # Use `meta_info` here
+        meta_info=student_data.meta_info
     )
     db.add(new_student)
     db.commit()

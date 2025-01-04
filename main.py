@@ -1,5 +1,6 @@
 
 from fastapi import FastAPI, HTTPException, Depends
+from fastapi_pagination import Page, add_pagination, paginate
 from sqlalchemy.orm import Session
 from typing import List
 import models, crud, schemas
@@ -7,6 +8,9 @@ from database import SessionLocal, engine, Base
 from sqlalchemy import func
 from sqlalchemy.sql import cast
 from sqlalchemy.types import String
+from fastapi_pagination.utils import disable_installed_extensions_check
+
+disable_installed_extensions_check()
 
 Base.metadata.create_all(bind=engine)
 app = FastAPI()
@@ -29,13 +33,19 @@ def create_student(student: schemas.StudentCreate, db: Session = Depends(get_db)
 def create_faculty(faculty: schemas.FacultyCreate, db: Session = Depends(get_db)):
     return crud.create_faculty(db, faculty)
 
-@app.get("/students/", response_model=List[schemas.StudentRead])
-def get_students(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    return crud.get_students(db, skip=skip, limit=limit)
+@app.get("/students/", response_model = Page[schemas.StudentRead])
+def get_students(db: Session = Depends(get_db)):
+    results = crud.get_students(db)
+    if not results:
+        raise HTTPException(status_code=404, detail="No students found")
+    return paginate(results)
 
-@app.get("/faculties/", response_model=List[schemas.FacultyRead])
-def get_faculties(skip: int = 0, limit: int = 10, db: Session = Depends(get_db)):
-    return crud.get_faculties(db, skip=skip, limit=limit)
+@app.get("/faculties/", response_model = Page[schemas.FacultyRead])
+def get_faculties(Session = Depends(get_db)):
+    results = crud.get_faculties(Session)
+    if not results:
+        raise HTTPException(status_code=404, detail="No faculties found")
+    return paginate(results)
 
 @app.get("/faculties/{name}/", response_model=schemas.FacultyRead)
 def get_faculty(name: str, db: Session = Depends(get_db)):
@@ -44,7 +54,7 @@ def get_faculty(name: str, db: Session = Depends(get_db)):
         raise HTTPException(status_code=404, detail="Faculty not found")
     return faculty
 
-@app.get("/students/filter-by-city/", response_model=List[schemas.StudentRead])
+@app.get("/students/filter-by-city/", response_model=Page[schemas.StudentRead])
 def filter_students(city: str, db: Session = Depends(get_db)):
     if not city:
         raise HTTPException(status_code=400, detail="City cannot be empty")
@@ -52,7 +62,7 @@ def filter_students(city: str, db: Session = Depends(get_db)):
     if students is None:
         raise HTTPException(status_code=404, detail="No students found in this city")
     students = sorted(students, key=lambda x: x.name_surname)
-    return students
+    return paginate(students)
 
 @app.get("/students-with-faculty/", response_model=List[dict])
 def students_with_faculty(db: Session = Depends(get_db)):
@@ -84,21 +94,23 @@ def count_students_by_city(db: Session = Depends(get_db)):
     results = sorted(results, key=lambda x: x[1], reverse=True)
     return [{"city": row[0], "student_count": row[1]} for row in results]
 
-@app.get("/students/search-by-name/")
+@app.get("/students/search-by-name/", response_model= Page[schemas.StudentRead])
 def search_students_by_name(name: str, db: Session = Depends(get_db)):
     students = crud.search_students_by_name(db, name)
     if students is None:
         raise HTTPException(status_code=404, detail="Student not found")
-    return students
+    return paginate(students)
 
-@app.get("/students/search-with-metadata/")
+@app.get("/students/search-with-metadata/", response_model=Page[schemas.StudentRead])
 def search_students(query: str, db: Session = Depends(get_db)):
+    if not query:
+        raise HTTPException(status_code=400, detail="Query cannot be empty")
     students = db.query(models.Student).filter(
         cast(models.Student.meta_info, String).ilike(f"%{query}%")
     ).all()
     if students is None:
         raise HTTPException(status_code=404, detail="Student not found")
-    return students
+    return paginate(students)
 
 @app.delete("/students/{student_id}/")
 def delete_student(student_id: int, db: Session = Depends(get_db)):
@@ -120,3 +132,5 @@ def get_student(student_id: int, db: Session = Depends(get_db)):
     if student is None:
         raise HTTPException(status_code=404, detail="Student not found")
     return student
+
+add_pagination(app)
