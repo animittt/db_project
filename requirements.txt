@@ -2,3 +2,5 @@ fastapi
 sqlalchemy
 uvicorn
 faker
+fastapi-pagination
+psycopg2
