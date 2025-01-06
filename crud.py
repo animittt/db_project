@@ -1,3 +1,4 @@
+from fastapi_pagination import Page, add_pagination, paginate
 from sqlalchemy.orm import Session
 import models, schemas
 from typing import List, Optional
@@ -20,8 +21,8 @@ def create_faculty(db: Session, faculty: schemas.FacultyCreate):
 def get_faculty(db: Session, name: str):
     return db.query(models.Faculty).filter(models.Faculty.name == name).first()
 
-def get_faculties(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(models.Faculty).offset(skip).limit(limit).all()
+def get_faculties(db: Session):
+    return db.query(models.Faculty).all()
 
 def update_faculty(db: Session, name: str, faculty: schemas.FacultyUpdate):
     db_faculty = db.query(models.Faculty).filter(models.Faculty.name == name).first()
@@ -55,8 +56,8 @@ def create_learning(db: Session, learning: schemas.LearningCreate):
 def get_learning(db: Session, spec_name: str):
     return db.query(models.Learning).filter(models.Learning.spec_name == spec_name).first()
 
-def get_learnings(db: Session, skip: int = 0, limit: int = 10):
-    return db.query(models.Learning).offset(skip).limit(limit).all()
+def get_learnings(db: Session):
+    return db.query(models.Learning).all()
 
 def update_learning(db: Session, spec_name: str, learning: schemas.LearningUpdate):
     db_learning = db.query(models.Learning).filter(models.Learning.spec_name == spec_name).first()
@@ -75,8 +76,8 @@ def delete_learning(db: Session, spec_name: str):
         db.commit()
     return db_learning
 
-def get_students(db: Session, skip: int = 0, limit: int = 10) -> List[models.Student]:
-    return db.query(models.Student).offset(skip).limit(limit).all()
+def get_students(db: Session) -> List[models.Student]:
+    return db.query(models.Student).all()
 
 def get_student_by_id(db: Session, student_id: int) -> Optional[models.Student]:
     return db.query(models.Student).filter(models.Student.id == student_id).first()
